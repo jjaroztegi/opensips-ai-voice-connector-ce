@@ -127,12 +127,14 @@ def handle_call(call, key, method, params):
         sdp = SessionDescription.parse(sdp_str)
 
         if call:
-            # handle in-dialog re-INVITE
-            direction = sdp.media[0].direction
-            if not direction or direction == "sendrecv":
-                call.resume()
-            else:
-                call.pause()
+            # handle in-dialog re-INVITE; without an offer, the reply offers
+            # the current SDP and the ACK brings the answer (RFC 3261 14.2)
+            if sdp.media:
+                direction = sdp.media[0].direction
+                if not direction or direction == "sendrecv":
+                    call.resume()
+                else:
+                    call.pause()
             try:
                 mi_reply(key, method, 200, 'OK', call.get_body())
             except OpenSIPSMIException:

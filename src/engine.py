@@ -47,6 +47,16 @@ mi_conn = OpenSIPSMI(conn="datagram", datagram_ip=mi_ip, datagram_port=mi_port)
 
 calls = {}
 
+# stands for the caller's offer when the INVITE has none (late offer): the
+# 200 OK then offers one of these codecs, and the caller's address is
+# learnt from its first RTP packet
+LATE_OFFER = ("v=0\r\n"
+              "o=- 0 0 IN IP4 0.0.0.0\r\n"
+              "s=-\r\n"
+              "c=IN IP4 0.0.0.0\r\n"
+              "t=0 0\r\n"
+              "m=audio 9 RTP/AVP 0 8\r\n")
+
 
 def mi_reply(key, method, code, reason, body=None):
     """ Replies to the server """
@@ -121,6 +131,9 @@ def handle_call(call, key, method, params):
             return
 
         sdp_str = params['body']
+        if not call and not sdp_str:
+            # the ACK brings the answer (RFC 3261 13.2.1)
+            sdp_str = LATE_OFFER
         # remove rtcp line, since the parser throws an error on it
         sdp_str = "\n".join([line for line in sdp_str.split("\n")
                              if not line.startswith("a=rtcp:")])

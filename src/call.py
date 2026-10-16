@@ -136,12 +136,14 @@ class Call():  # pylint: disable=too-many-instance-attributes
         self.paused = False
         self.sdp.media[0].direction = "sendrecv"
 
-    def pause(self):
-        """ Pauses the call's audio """
+    def pause(self, direction):
+        """ Pauses the call's audio, answering an offer with `direction` """
+        # RFC 3264 6.1: sendonly is answered recvonly, anything else inactive
+        self.sdp.media[0].direction = \
+            "recvonly" if direction == "sendonly" else "inactive"
         if self.paused:
             return
         logging.info("pausing %s", self.b2b_key)
-        self.sdp.media[0].direction = "recvonly"
 
         self.paused = True
 

@@ -132,7 +132,7 @@ def handle_call(call, key, method, params):
             if not direction or direction == "sendrecv":
                 call.resume()
             else:
-                call.pause()
+                call.pause(direction)
             try:
                 mi_reply(key, method, 200, 'OK', call.get_body())
             except OpenSIPSMIException:

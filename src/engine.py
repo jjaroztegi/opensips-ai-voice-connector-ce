@@ -33,7 +33,7 @@ from aiortc.sdp import SessionDescription
 
 from call import Call
 from config import Config
-from codec import UnsupportedCodec
+from codec import UnsupportedCodec, get_codecs
 from utils import UnknownSIPUser
 import utils as utils
 import mcp_client
@@ -128,6 +128,11 @@ def handle_call(call, key, method, params):
 
         if call:
             # handle in-dialog re-INVITE
+            if call.codec.params.name.lower() not in \
+                    [codec.name.lower() for codec in get_codecs(sdp)]:
+                # the call's codec cannot change: keep the session as it is
+                mi_reply(key, method, 488, 'Not Acceptable Here')
+                return
             direction = sdp.media[0].direction
             if not direction or direction == "sendrecv":
                 call.resume()

@@ -129,7 +129,10 @@ def handle_call(call, key, method, params):
         if call:
             # handle in-dialog re-INVITE
             direction = sdp.media[0].direction
-            if not direction or direction == "sendrecv":
+            if (sdp.media[0].host or sdp.host) == "0.0.0.0":
+                # a 0.0.0.0 address also means hold (RFC 3264 8.4)
+                call.pause("inactive")
+            elif not direction or direction == "sendrecv":
                 call.resume()
             else:
                 call.pause(direction)
